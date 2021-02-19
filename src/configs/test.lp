@@ -1,5 +1,6 @@
 dim(5,5).
 distance(15).
+range(3).
 fill(50,100).
 loading(2).
 storage(2).

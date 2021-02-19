@@ -3,7 +3,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Guess edges, make sure fill is correct and every vertex is reachable
-{ edge((X,Y),(X',Y')) : X=1..MaxX, Y=1..MaxY, X'=1..MaxX, Y'=1..MaxY, (X,Y)<(X',Y') } :- dim(MaxX,MaxY).
+manDist((X,Y),(X',Y'),D*S) :- X=1..MaxX, Y=1..MaxY, X'=1..MaxX, Y'=1..MaxY, D=|X-X'|+|Y-Y'|, dim(MaxX,MaxY), distance(S).
+{ edge(V,V') : V<V', manDist(V,V',D), distance(R), range(T), D<=T*R }.
 edge(V,V') :- edge(V',V).
 :- not (MaxX*MaxY*Min)/100 { vert((X,Y)) : X=1..MaxX, Y=1..MaxY  } (MaxX*MaxY*Max)/100, fill(Min,Max), dim(MaxX,MaxY).
 vert(V;V') :- edge(V,V').
@@ -11,7 +12,6 @@ vert(V;V') :- edge(V,V').
 reach(V') :- svert(V), edge(V,V').
 reach(V') :- reach(V), edge(V,V').
 :- vert(V), not reach(V).
-manDist((X,Y),(X',Y'),D*S) :- vert((X,Y)), vert((X',Y')), D=|X-X'|+|Y-Y'|, distance(S).
 
 % Check that edges are not crossing
 :- edge((X1,Y1),(X2,Y2)), (X1,Y1)<(X2,Y2),
