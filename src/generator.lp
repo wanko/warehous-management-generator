@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Guess edges, make sure fill is correct and every vertex is reachable
-{ edge(V,V') : V<V', manDist(V,V',D), distance(R), range(T), D<=T*R }.
+{ edge(V,V') : V<V', eucDist(V,V',D), distance(R), range(T), D<=T*R }.
 edge(V,V') :- edge(V',V).
 vert(V;V') :- edge(V,V').
 :- not (MaxX*MaxY*Min)/100 { vert((X,Y)) : X=1..MaxX, Y=1..MaxY  } (MaxX*MaxY*Max)/100, fill(Min,Max), dim(MaxX,MaxY).
@@ -14,48 +14,28 @@ reach(V') :- reach(V), edge(V,V').
 degree(V,D) :- vert(V), D=#sum{ 1,V,V' : edge(V,V') }.
 :- degree(MinD,Min,Max), not Min #sum{ 1,V : degree(V,D), D>=MinD } Max.
 
-% Check that edges are not crossing (general case)
+% Check that edges are not crossing
 :- edge((X1,Y1),(X2,Y2)), (X1,Y1)<(X2,Y2),
-   1{ edge((X3,Y3),(X4,Y4)) : (X1,Y1)!=(X3,Y3), (X2,Y2)!=(X4,Y4), (X1,Y1)!=(X4,Y4), (X2,Y2)!=(X3,Y3), (X3,Y3)<(X4,Y4), (X1,Y1,X2,Y2)<(X3,Y3,X4,Y4),
-                              O1 = (Y2-Y1)*(X3-X2)-(X2-X1)*(Y3-Y2), O2 = (Y2-Y1)*(X4-X2)-(X2-X1)*(Y4-Y2), O1!=O2,
-                              O3 = (Y4-Y3)*(X1-X4)-(X4-X3)*(Y1-Y4), O4 = (Y4-Y3)*(X2-X4)-(X4-X3)*(Y2-Y4), O3!=O4}.
-% Check that edges are not crossing (colinear)
-:- edge((X1,Y1),(X2,Y2)), (X1,Y1)<(X2,Y2),
-   1{ edge((X3,Y3),(X4,Y4)) : (X1,Y1,X2,Y2)<(X3,Y3,X4,Y4), (X1,Y1)!=(X4,Y4), (X2,Y2)!=(X3,Y3), (X3,Y3)<(X4,Y4),
-                              O = (Y2-Y1)*(X4-X2)-(X2-X1)*(Y4-Y2), O = 0, 
-                              max(X1,X2,XMX), min(X1,X2,XMN), max(Y1,Y2,YMX), min(Y1,Y2,YMN),
-                              X4 <= XMX, X4 >= XMN, Y4 <= YMX, Y4 >= YMN }.
-:- edge((X1,Y1),(X2,Y2)), (X1,Y1)<(X2,Y2),
-   1{ edge((X3,Y3),(X4,Y4)) : (X1,Y1,X2,Y2)<(X3,Y3,X4,Y4), (X1,Y1)!=(X4,Y4), (X2,Y2)!=(X3,Y3), (X3,Y3)<(X4,Y4),
-                              O = (Y4-Y3)*(X1-X4)-(X4-X3)*(Y1-Y4), O = 0,  
-                              max(X3,X4,XMX), min(X3,X4,XMN), max(Y3,Y4,YMX), min(Y3,Y4,YMN),
-                              X1 <= XMX, X1 >= XMX, Y1 <= YMX, Y1 >= YMN }.
-:- edge((X1,Y1),(X2,Y2)), (X1,Y1)<(X2,Y2),
-   1{ edge((X3,Y3),(X4,Y4)) : (X1,Y1,X2,Y2)<(X3,Y3,X4,Y4), (X1,Y1)!=(X4,Y4), (X2,Y2)!=(X3,Y3), (X3,Y3)<(X4,Y4),
-                              O = (Y4-Y3)*(X2-X4)-(X4-X3)*(Y2-Y4), O = 0,   
-                              max(X3,X4,XMX), min(X3,X4,XMN), max(Y3,Y4,YMX), min(Y3,Y4,YMN),
-                              X2 <= XMX, X2 >= XMN, Y2 <= YMX, Y2 >= YMN }.
+   1{ edge((X3,Y3),(X4,Y4)) : (X1,Y1)!=(X3,Y3), (X1,Y1)!=(X4,Y4), (X2,Y2)!=(X3,Y3), (X2,Y2)!=(X4,Y4),
+                              t=@crossing((X1,Y1),(X2,Y2),(X3,Y3),(X4,Y4))}.
 
 % Calculate travel time
-edge(V,V',D*S) :- edge(V,V'), robotSpeed(S), manDist(V,V',D).
+edge(V,V',D*S) :- edge(V,V'), robotSpeed(S), eucDist(V,V',D).
 
-% Guess storage
-N { storeVert((X,Y)) : X=1..MaxX, Y=1..MaxY } N :- dim(MaxX,MaxY), storage(N).
-:- storeVert(V), not vert(V).
+% Guess special vertices
+N { vert(T,(X,Y)) : X=1..MaxX, Y=1..MaxY } N :- dim(MaxX,MaxY), vertType(T,N).
+:- vert(T,V), not vert(V).
 
-% Guess loading
-N { loadVert((X,Y)) : X=1..MaxX, Y=1..MaxY } N :- dim(MaxX,MaxY), storage(N).
-:- loadVert(V), not vert(V).
+% Make sure special types are certain distance apart and in desired area
+:- #sum{ 1,V,V' : vert(T,V), vert(T',V'), eucDist(V,V',D'), D'<D } >= 1, distTypes(T,T',D).
+:- location(T,XMN,YMN,XMX,YMX), vert(T,(X,Y)), 
+   1 #sum { 1 : XMN>X; 1 : XMX<X; 1 : YMN>Y; 1 : YMX<Y }.
 
-% Make sure loading and storage vertices have the correct distance
-:- #sum{ 1,V,V' : storeVert(V), loadVert(V'), manDist(V,V',D'), D'<D } >= 1, distLoadStore(D).
-
-% Specify and forbid conflicting occupation
-conflict(V) :- loadVert(V), storeVert(V).
+% avoid conflicting vertex definitions (can be defined anywhere else as a catchall predicate)
 :- conflict(V), vert(V).
 
 % Calculate vertex conflicts
-conflict(v,V,V') :- vert(V), vert(V'), manDist(V,V',D), robotSize(S), D<=S. 
+conflict(v,V,V') :- vert(V), vert(V'), eucDist(V,V',D), robotSize(S), D<=S. 
 % Calculate edge conflicts
 conflict(e,(V1,V2),(V3,V4)) :- edge(V1,V2), edge(V3,V4), conflict(v,V1,V3), conflict(v,V2,V4). 
 
@@ -69,7 +49,7 @@ conflict(e,(V1,V2),(V3,V4)) :- edge(V1,V2), edge(V3,V4), conflict(v,V1,V3), conf
 robot(R) :- robots(N), R=1..N.
 1 { home(R,(X,Y)) : X=1..MaxX, Y=1..MaxY } 1 :- robot(R), dim(MaxX,MaxY).
 :- home(R,V), not vert(V).
-conflict(V) :- home(_,V), 1 { loadVert(V); storeVert(V) }.
+conflict(V) :- home(_,V), 1 { vert(_,V) }.
 conflict(V) :- 2 { home(R,V) }, vert(V).
 start(R,V) :- home(R,V), not replan.
 1 { start(R,(X,Y)) : X=1..MaxX, Y=1..MaxY } 1 :- robot(R), dim(MaxX,MaxY).
@@ -92,7 +72,10 @@ dependsTrans(T,T')  :- depends(D,T,T').
 dependsTrans(T,T'') :- dependsTrans(T,T'), dependsTrans(T',T'').
 :- dependsTrans(T,T).
 :- depends(deliver,T,T'), task(T,V), task(T',V'),
-   distTasks(M), manDist(V,V',D), D<M.
+   distTasks(M), eucDist(V,V',D), D<M.
+
+% check that tasks are at desired special vertices
+:- taskLocation(TT,VT,MN,MX), not MN #sum { 1,V,ID : task((ID,TT),V), vert(VT,V) } MX.
 
 #show depends/3.
 #show task/2.
