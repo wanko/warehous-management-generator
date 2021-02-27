@@ -1,4 +1,4 @@
-vertType(loading,1).
+vertType(loading,N/2) :- tasks(deliver,N).
 vertType(storage,1).
 vertType(pallets,1).
 distTypes(loading,storage,15).
@@ -14,6 +14,10 @@ taskLocation(putdown,storage,N/2,#sup) :- tasks(deliver,N).
 taskLocation(pickup,pallets,N/2,#sup)  :- tasks(deliver,N).
 taskLocation(putdown,loading,N/2,#sup) :- tasks(deliver,N).
 
-:- task((ID,pickup),V), vert(loading,V),
-   not 2 #sum { 1,ID,ID'  : depends(wait,(ID,pickup),(ID',putdown));
-                1,ID'     : task((ID',putdown),V) } 2.
+replenish(V,ID) :- task((ID,pickup),V), vert(loading,V),
+                   depends(wait,(ID,pickup),(ID',putdown)),
+                   depends(deliver,(ID''',pickup),(ID',putdown)),
+                   task((ID',putdown),V), task((ID''',pickup),V'), vert(pallets,V').
+
+:- not replenish(V,ID), task((ID,pickup),V), vert(loading,V).
+:- vert(loading,V), not task((_,pickup),V).
