@@ -1,11 +1,11 @@
 vertType(loading,N/2) :- tasks(deliver,N).
-vertType(storage,1).
-vertType(pallets,1).
+vertType(storage,Y) :- dim(X,Y).
+vertType(pallets,2).
 distTypes(loading,storage,15).
 distTypes(loading,pallets,15).
 distTypes(pallets,storage,15).
 
-location(loading,#inf,1,#sup,1).
+location(loading,#inf,1,X/2,1)  :- dim(X,Y).
 location(storage,#inf,Y,#sup,Y) :- dim(X,Y).
 location(pallets,#inf,1,#sup,1).
 

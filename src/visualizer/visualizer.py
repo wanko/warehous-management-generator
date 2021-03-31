@@ -3,11 +3,29 @@ import sys
 import json
 import matplotlib.pyplot as plt
 import pandas as pd
+import argparse
 from warehouse.warehouse import Warehouse
 
+parser = argparse.ArgumentParser(description='Visualize a Warehouse Problem Instance.')
+parser.add_argument("-f", "--file", type=str,
+                    default=None,
+                    help="Read instance file (Default: json format from clingo via stdin)")
+parser.add_argument("-o", "--output", type=str,
+                    default="screen",
+                    help="Output either to screen or files (Default: screen). Specify absolute or relative filename without extension.")
+args = parser.parse_args()
+
 # get and parse warehouse instance
-data = json.load(sys.stdin)
-warehouse = Warehouse(instance=data['Call'][0]['Witnesses'][len(data['Call'][0]['Witnesses'])-1]['Value'])
+if args.file:
+        with open(args.file) as f:
+                instance = []
+                for line in f:
+                        line.replace(".","")
+                        instance.extend(line.split(" "))
+        warehouse = Warehouse(instance=instance)
+else:
+        data = json.load(sys.stdin)
+        warehouse = Warehouse(instance=data['Call'][0]['Witnesses'][len(data['Call'][0]['Witnesses'])-1]['Value'])
 
 # create graphs
 # warehouse
@@ -35,7 +53,7 @@ for task1 in warehouse.tasks:
 
 # draw warehouse
 pos=nx.get_node_attributes(G,'pos')
-plt.figure("Warehouse")
+whf = plt.figure("Warehouse")
 nx.draw(G,pos)
 nx.draw_networkx_edge_labels(G,pos,edge_labels={(edge[0],edge[1]) : edge[2] for edge in warehouse.edges})
 pos=nx.get_node_attributes(H,'pos')
@@ -49,12 +67,16 @@ nx.draw_networkx_nodes(R,pos,node_shape='o',node_color='grey')
 nx.draw_networkx_labels(R,{node : (pos[node][0],pos[node][1]-0.2) for node in pos},labels={warehouse.robots[robot] : "robot "+str(robot) for robot in warehouse.robots})
 
 # draw dependency graph
-plt.figure("Dependency Graph")
+dgf = plt.figure("Dependency Graph")
 pos = nx.circular_layout(D)
 nx.draw(D,pos)
 nx.draw_networkx_edges(D,pos, arrows=True)
 nx.draw_networkx_edge_labels(D,pos,edge_labels=nx.get_edge_attributes(D,'type'))
 nx.draw_networkx_labels(D,pos,labels={task: task+'\n'+str(warehouse.tasks[task]) for task in warehouse.tasks})
 
-plt.show()
+if args.output == "screen":
+        plt.show()
+else:
+        whf.savefig(args.output+"_warehouse.png")
+        dgf.savefig(args.output+"_dependencygraph.png")
 

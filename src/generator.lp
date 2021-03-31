@@ -6,13 +6,14 @@
 { edge(V,V') : V<V', eucDist(V,V',D), distance(R), range(T), D<=T*R }.
 edge(V,V') :- edge(V',V).
 vert(V;V') :- edge(V,V').
-:- not (MaxX*MaxY*Min)/100 { vert((X,Y)) : X=1..MaxX, Y=1..MaxY  } (MaxX*MaxY*Max)/100, fill(Min,Max), dim(MaxX,MaxY).
+:- fill(Min,Max), dim(MaxX,MaxY), not (MaxX*MaxY*Min)/100 { vert((X,Y)) : X=1..MaxX, Y=1..MaxY  } (MaxX*MaxY*Max)/100.
 1{ svert(V) : vert(V) }1.
 reach(V') :- svert(V), edge(V,V').
 reach(V') :- reach(V), edge(V,V').
 :- vert(V), not reach(V).
-degree(V,D) :- vert(V), D=#sum{ 1,V,V' : edge(V,V') }.
-:- degree(MinD,Min,Max), not Min #sum{ 1,V : degree(V,D), D>=MinD } Max.
+
+%degree(V,D) :- vert(V), D=#sum{ 1,V,V' : edge(V,V') }. % too inefficient
+%:- degree(MinD,Min,Max), dim(MaxX,MaxY), not (MaxX*MaxY*Min)/100 #sum{ 1,V : degree(V,D), D>=MinD } (MaxX*MaxY*Max)/100.
 
 % Check that edges are not crossing
 :- edge((X1,Y1),(X2,Y2)), (X1,Y1)<(X2,Y2),
@@ -49,6 +50,8 @@ conflict(e,(V1,V2),(V3,V4)) :- edge(V1,V2), edge(V3,V4), conflict(v,V1,V3), conf
 robot(R) :- robots(N), R=1..N.
 1 { home(R,(X,Y)) : X=1..MaxX, Y=1..MaxY } 1 :- robot(R), dim(MaxX,MaxY).
 :- home(R,V), not vert(V).
+:- homeArea(XMN,YMN,XMX,YMX),  home(R,(X,Y)), 
+   1 #sum { 1 : XMN>X; 1 : XMX<X; 1 : YMN>Y; 1 : YMX<Y }.
 conflict(V) :- home(_,V), 1 { vert(_,V) }.
 conflict(V) :- 2 { home(R,V) }, vert(V).
 start(R,V) :- home(R,V), not replan.

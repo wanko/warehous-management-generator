@@ -1,0 +1,1 @@
+#heuristic edge(V,V') : V<V', eucDist(V,V',D), distance(R), range(T), D<=T*R. [1,false]
