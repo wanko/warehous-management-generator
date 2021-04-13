@@ -38,7 +38,7 @@ N { vert(T,(X,Y)) : X=1..MaxX, Y=1..MaxY } N :- dim(MaxX,MaxY), vertType(T,N).
 % Calculate vertex conflicts
 conflict(v,V,V') :- vert(V), vert(V'), eucDist(V,V',D), robotSize(S), D<=S. 
 % Calculate edge conflicts
-conflict(e,(V1,V2),(V3,V4)) :- edge(V1,V2), edge(V3,V4), conflict(v,V1,V3), conflict(v,V2,V4). 
+conflict(e,(V1,V2),(V3,V4);e,(V2,V1),(V3,V4);e,(V1,V2),(V4,V3);e,(V2,V1),(V3,V4)) :- edge(V1,V2), edge(V3,V4), conflict(v,V1,V3), conflict(v,V2,V4). 
 
 #show edge/3.
 #show conflict/3.
