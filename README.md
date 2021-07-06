@@ -20,7 +20,7 @@ ASP-based instance generator for the Warehouse Management Problem
 
     clingo src/generator.lp src/arith.lp src/configs/<config> src/scenarios/<scenario> scr/heuristic/<heuristic> --heuristic=Domain --out-atomf="%s." | tac | sed '7q;d' > <instance>
 
-The call creates an instance with warehouse configuration <config>, scenario <scenario> and heuristic <heuristic> under filename <instance>. Fact format corresponds to paper.
+The call creates an instance with warehouse configuration `<config>`, scenario <scenario> and heuristic `<heuristic>` under filename `<instance>`. Fact format corresponds to paper.
 
 ##### Example
 
@@ -49,7 +49,7 @@ Alternatively, an Warehouse Management Problem instance file can be given as inp
 
     python src/visualizer/visualizer.py --file <instance> [--output <output>]
 
-For both modes, if `--output` is not specified, interactive plots are output to the display, otherwise two pictures <output>_warehouse.png and <output>_dependencygraph.png are created.
+For both modes, if `--output` is not specified, interactive plots are output to the display, otherwise two pictures <output>_warehouse.png and `<output>`_dependencygraph.png are created.
 
 ##### Examples
 
