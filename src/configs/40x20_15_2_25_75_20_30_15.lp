@@ -1,4 +1,4 @@
-dim(20,20).
+dim(40,20).
 distance(15).
 range(2).
 fill(25,75).
