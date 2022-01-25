@@ -55,6 +55,7 @@ for task1 in warehouse.tasks:
 pos=nx.get_node_attributes(G,'pos')
 whf = plt.figure("Warehouse")
 nx.draw(G,pos)
+nx.draw_networkx_edges(G, pos, edgelist=warehouse.edges, arrows=True)
 nx.draw_networkx_edge_labels(G,pos,edge_labels={(edge[0],edge[1]) : edge[2] for edge in warehouse.edges})
 pos=nx.get_node_attributes(H,'pos')
 nx.draw_networkx_nodes(H,pos,node_shape='^',node_color='green')
